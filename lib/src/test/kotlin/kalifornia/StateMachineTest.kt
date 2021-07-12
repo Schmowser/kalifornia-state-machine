@@ -7,29 +7,38 @@ import kotlin.test.assertEquals
 class StateMachineTest {
     @Test fun `that sending an event transits the test object from source state to target state`() {
         val testInstance = TestClass()
-        testInstance.state = "S1"
-        val testEventHandler = EventHandler<TestClass, String, String>()
-        val s1ToS2 = DirectTransition<TestClass, String>("S1", "S2")
-        testEventHandler.addEvent("E1", s1ToS2)
+        val testConfig = config<TestClass, String, String> {
+            states("S1", "S2")
+            events("E1")
+            transitions(
+                onEvent("E1", "S1" transitsTo "S2")
+            )
+        }.build()
 
-        val classUnderTest = StateMachine(testEventHandler)
+        val classUnderTest = StateMachine(testConfig)
 
         classUnderTest.start<TestClass>()
         classUnderTest.sendEvent(testInstance, "E1")
+
         assertEquals("S2", testInstance.state, "Test object's state did not change correctly.")
     }
 
     @Test fun `that sending an event does not transits the test object to a different state`() {
         val testInstance = TestClass()
         testInstance.state = "S2"
-        val testEventHandler = EventHandler<TestClass, String, String>()
-        val s1ToS2 = DirectTransition<TestClass, String>("S1", "S2")
-        testEventHandler.addEvent("E1", s1ToS2)
+        val testConfig = config<TestClass, String, String> {
+            states("S1", "S2")
+            events("E1")
+            transitions(
+                onEvent("E1", "S1" transitsTo "S2")
+            )
+        }.build()
 
-        val classUnderTest = StateMachine(testEventHandler)
+        val classUnderTest = StateMachine(testConfig)
 
         classUnderTest.start<TestClass>()
         classUnderTest.sendEvent(testInstance, "E1")
+
         assertEquals("S2", testInstance.state, "Test object's state changed.")
     }
 }
